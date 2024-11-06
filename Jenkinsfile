@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         FLYWAY_VERSION = '9.22.3'
-        SNOWFLAKE_ACCOUNT = credentials('TVDWARH-WSB57083')
+        SNOWFLAKE_ACCOUNT = credentials('ZVB91206')
         SNOWFLAKE_USER = credentials('akhilgurrapu')
         SNOWFLAKE_PASSWORD = credentials('Akhil@1997')
         SNOWFLAKE_WAREHOUSE = 'DEV_WH'
