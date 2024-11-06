@@ -3,8 +3,7 @@ pipeline {
   stages {
     stage('Verify version') {
       steps {
-        sh 'docker run --rm redgate/flyway
-'
+        sh 'docker run --rm redgate/flyway'
       }
     }
   }
