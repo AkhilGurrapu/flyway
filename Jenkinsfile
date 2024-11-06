@@ -16,10 +16,7 @@ pipeline {
                 script {
                     // Wrap steps in a node block
                     node {
-                        sh '''
-                            wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/${FLYWAY_VERSION}/flyway-commandline-${FLYWAY_VERSION}-linux-x64.tar.gz | tar xvz
-                            sudo ln -s `pwd`/flyway-${FLYWAY_VERSION}/flyway /usr/local/bin
-                        '''
+                        sh 'docker run --rm redgate/flyway'
                     }
                 }
             }
