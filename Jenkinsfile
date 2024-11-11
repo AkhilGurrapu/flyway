@@ -1,27 +1,26 @@
 pipeline {
     agent any
     
-    environment {
-        // Create environment variables for Snowflake credentials
-        SNOWFLAKE_USER = credentials('snowflake-user')
-        SNOWFLAKE_PASSWORD = credentials('snowflake-password')
-    }
-    
     stages {
+        stage('Setup') {
+            steps {
+                sh '''
+                    wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/9.22.3/flyway-commandline-9.22.3-linux-x64.tar.gz | tar xvz
+                    export PATH=$PATH:`pwd`/flyway-9.22.3
+                '''
+            }
+        }
+        
         stage('Run Migration') {
             steps {
-                // Run Flyway using existing config
                 sh 'flyway -configFiles=flyway.conf migrate'
             }
         }
     }
     
     post {
-        success {
-            echo "Migration completed successfully!"
-        }
         failure {
-            echo "Migration failed!"
+            echo 'Migration failed!'
         }
     }
 }
