@@ -19,7 +19,7 @@ pipeline {
 
         stage('Run Flyway Migration') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'snowflake-credentials', usernameVariable: 'SNOWFLAKE_USER', passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', usernameVariable: 'SNOWFLAKE_USER', passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh '''
                         ${FLYWAY_HOME}/flyway \
                         -url="jdbc:snowflake://${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com" \
