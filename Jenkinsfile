@@ -18,14 +18,11 @@ pipeline {
                 
                 // Create flyway config
                 writeFile file: 'flyway.conf', text: """
-                    flyway.url=jdbc:snowflake://zvb91206.snowflakecomputing.com
+                    flyway.url=jdbc:snowflake://zvb91206.snowflakecomputing.com/?db=TEST&schema=DEMO&warehouse=COMPUTE_WH
                     flyway.user=${SNOWFLAKE_CREDS_USR}
                     flyway.password=${SNOWFLAKE_CREDS_PSW}
-                    flyway.locations=filesystem:db
-                    flyway.database=TEST
-                    flyway.schema=DEMO
-                    flyway.defaultSchema=DEMO
-                    flyway.jdbcProperties.warehouse=COMPUTE_WH
+                    flyway.locations=filesystem:sql
+                    flyway.defaultSchema=PUBLIC
                 """
                 
                 // Run migration
