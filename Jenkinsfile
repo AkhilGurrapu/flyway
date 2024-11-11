@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        FLYWAY_HOME = '/var/lib/jenkins/workspace/flyway-snowflake/flyway-9.20.0'
         SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
     }
 
