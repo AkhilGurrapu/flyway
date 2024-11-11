@@ -7,11 +7,11 @@ pipeline {
                         sh 'docker run --rm flyway/flyway:8.5.1 version'
                     }
         }
-        stage('Run Migration') {
+        stage('migrate') {
             steps {
-                sh 'flyway -configFiles=flyway.conf migrate'
+                sh 'docker run --rm -v $WORKSPACE/db:/flyway/db -v $WORKSPACE/conf:/flyway/conf flyway/flyway:8.5.1 -user=$snowflake-user -password=$snowflake-password migrate'
+            }
     }
-}
     }
     
     post {
