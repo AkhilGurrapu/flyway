@@ -2,13 +2,13 @@ pipeline {
     agent any
     
     stages {
+        stage('Verify version') {
+            steps {
+                        sh 'docker run --rm flyway/flyway:8.5.1 version'
+                    }
+        }
         stage('Run Migration') {
             steps {
-                sh '''
-                    ls -la ${WORKSPACE}/flywayPipelines/flyway-9.22.3
-                    which flyway || echo "flyway not found in PATH"
-                    echo $PATH
-                '''
                 sh 'flyway -configFiles=flyway.conf migrate'
     }
 }
