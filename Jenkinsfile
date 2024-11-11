@@ -25,7 +25,7 @@ pipeline {
                         -url="jdbc:snowflake://${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com" \
                         -user=${SNOWFLAKE_USER} \
                         -password=${SNOWFLAKE_PASSWORD} \
-                        -locations=filesystem:${WORKSPACE}/migrations \
+                        -locations=filesystem:${WORKSPACE}/db \
                         migrate
                     '''
                 }
