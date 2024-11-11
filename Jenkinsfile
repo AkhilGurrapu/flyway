@@ -1,35 +1,33 @@
 pipeline {
     agent any
-    
+
     environment {
-        FLYWAY_VERSION = '8.5.13'
+        FLYWAY_HOME = '/var/lib/jenkins/workspace/flyway-snowflake/flyway-9.20.0'
         SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
-        SNOWFLAKE_USER = credentials('akhilgurrapu')
-        SNOWFLAKE_PASSWORD = credentials('Akhil@1997')
-        SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
-        SNOWFLAKE_DATABASE = 'TEST'
-        SNOWFLAKE_SCHEMA = 'DEMO'
     }
-    
+
     stages {
+        stage('Setup Flyway') {
+            steps {
+                sh '''
+                    wget -q -O flyway.tar.gz https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/9.20.0/flyway-commandline-9.20.0-linux-x64.tar.gz
+                    tar -xzf flyway.tar.gz
+                    rm flyway.tar.gz
+                '''
+            }
+        }
+
         stage('Run Flyway Migration') {
             steps {
-                script {
-                    // Download Flyway CLI
-                    sh "wget -q https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/${FLYWAY_VERSION}/flyway-commandline-${FLYWAY_VERSION}-linux-x64.tar.gz"
-                    sh "tar -xzf flyway-commandline-${FLYWAY_VERSION}-linux-x64.tar.gz"
-                    
-                    // Run Flyway migration
-                    sh """
-                    ./flyway-${FLYWAY_VERSION}/flyway \
-                    -url=jdbc:snowflake://${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com \
-                    -user=${SNOWFLAKE_USER} \
-                    -password=${SNOWFLAKE_PASSWORD} \
-                    -warehouse=${SNOWFLAKE_WAREHOUSE} \
-                    -database=${SNOWFLAKE_DATABASE} \
-                    -schema=${SNOWFLAKE_SCHEMA} \
-                    migrate
-                    """
+                withCredentials([usernamePassword(credentialsId: 'snowflake-credentials', usernameVariable: 'SNOWFLAKE_USER', passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
+                    sh '''
+                        ${FLYWAY_HOME}/flyway \
+                        -url="jdbc:snowflake://${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com" \
+                        -user=${SNOWFLAKE_USER} \
+                        -password=${SNOWFLAKE_PASSWORD} \
+                        -locations=filesystem:${WORKSPACE}/migrations \
+                        migrate
+                    '''
                 }
             }
         }
