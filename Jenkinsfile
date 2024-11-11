@@ -4,6 +4,9 @@ pipeline {
     environment {
         FLYWAY_VERSION = '9.20.0'
         SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
+        SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
+        SNOWFLAKE_DATABASE = 'FLYWAY'
+        SNOWFLAKE_SCHEMA = 'flyway_schema_history'
     }
 
     stages {
