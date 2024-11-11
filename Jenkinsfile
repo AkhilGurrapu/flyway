@@ -11,6 +11,8 @@ pipeline {
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         SNOWFLAKE_DATABASE = 'TEST'
         SNOWFLAKE_ROLE = 'ADMIN'
+        SNOWFLAKE_SCHEMA = 'DEMO'
+
         
         // GitHub details
         GITHUB_REPO = 'https://github.com/AkhilGurrapu/flyway.git'
