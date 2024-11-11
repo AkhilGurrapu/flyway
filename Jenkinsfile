@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         // Snowflake credentials stored in Jenkins
-        SNOWFLAKE_CREDS = credentials('snowflake-credentials')
+        SNOWFLAKE_CREDS = credentials('snowflake-credentials1')
         FLYWAY_VERSION = '9.8.1'
         
         // Snowflake connection details
