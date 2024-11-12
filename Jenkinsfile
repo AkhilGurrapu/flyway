@@ -1,38 +1,13 @@
 pipeline {
     agent any
 
-    environment {
-        FLYWAY_VERSION = '10.21.0'
-        SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
-        SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
-        SNOWFLAKE_DATABASE = 'FLYWAY'
-    }
-
     stages {
-        stage('Setup Flyway') {
+        stage('Build Flyway') {
             steps {
-                sh """
-                    wget -q -O flyway.tar.gz https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/${FLYWAY_VERSION}/flyway-commandline-${FLYWAY_VERSION}-linux-x64.tar.gz
-                    tar -xzf flyway.tar.gz
-                    rm flyway.tar.gz
-                """
+                sh '''
+                    $ wget -qO- https://download.red-gate.com/maven/release/com/redgate/flyway/flyway-commandline/10.21.0/flyway-commandline-10.21.0-linux-x64.tar.gz | tar -xvz && sudo ln -s `pwd`/flyway-10.21.0/flyway /usr/local/bin 
+                '''
             }
         }
 
-        stage('Run Flyway Migration') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', usernameVariable: 'SNOWFLAKE_USER', passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
-                    sh """
-                        ./flyway-${FLYWAY_VERSION}/flyway \
-                        -url="jdbc:snowflake://${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com" \
-                        -user=${SNOWFLAKE_USER} \
-                        -password=${SNOWFLAKE_PASSWORD} \
-                        -locations=filesystem:/var/lib/jenkins/workspace/Flyway/FlywayPL/db \
-                        -connectRetries=10 \
-                        migrate
-                    """
-                }
-            }
-        }
-    }
 }
