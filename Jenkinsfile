@@ -9,16 +9,16 @@ pipeline {
     }
     
     parameters {
-        choice(
-            name: 'DATABASE_NAME',
-            choices: ['FLYWAY', 'test', 'flywaychecking'],
-            description: 'Select the database to run migrations on'
-        )
-        choice(
-            name: 'SCHEMA_NAME',
-            choices: ['PUBLIC', 'DEV', 'PROD', 'DEMO'],
-            description: 'Select the schema to use'
-        )
+        // choice(
+        //     name: 'DATABASE_NAME',
+        //     choices: ['FLYWAY', 'test', 'flywaychecking'],
+        //     description: 'Select the database to run migrations on'
+        // )
+        // choice(
+        //     name: 'SCHEMA_NAME',
+        //     choices: ['PUBLIC', 'DEV', 'PROD', 'DEMO'],
+        //     description: 'Select the schema to use'
+        // )
     }
     
     stages {
@@ -29,12 +29,11 @@ pipeline {
                                 passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh """
                         ./flyway-\${FLYWAY_VERSION}/flyway \
-                        -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=${params.DATABASE_NAME}" \
+                        -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}" \
                         -user=\${SNOWFLAKE_USER} \
                         -password=\${SNOWFLAKE_PASSWORD} \
-                        -schemas=${params.SCHEMA_NAME} \
                         -locations=filesystem:./db \
-                        -defaultSchema="flyway.flyway_sh" \
+                        -defaultSchema="flyway" \
                         migrate
                     """
                 }
