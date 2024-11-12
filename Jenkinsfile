@@ -16,22 +16,12 @@ pipeline {
         )
         choice(
             name: 'SCHEMA_NAME',
-            choices: ['PUBLIC', 'DEV', 'PROD'],
+            choices: ['PUBLIC', 'DEV', 'PROD', 'DEMO'],
             description: 'Select the schema to use'
         )
     }
     
     stages {
-        // stage('Setup Flyway') {
-        //     steps {
-        //         sh """
-        //             wget -q -O flyway.tar.gz https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/\${FLYWAY_VERSION}/flyway-commandline-\${FLYWAY_VERSION}-linux-x64.tar.gz
-        //             tar -xzf flyway.tar.gz
-        //             rm flyway.tar.gz
-        //         """
-        //     }
-        // }
-        
         stage('Run Flyway Migration') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', 
@@ -44,6 +34,8 @@ pipeline {
                         -password=\${SNOWFLAKE_PASSWORD} \
                         -schemas=${params.SCHEMA_NAME} \
                         -locations=filesystem:./db \
+                        -flywaySchemas=FLYWAY_SH \
+                        -installedBy=\${SNOWFLAKE_USER} \
                         migrate
                     """
                 }
