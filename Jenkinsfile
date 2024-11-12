@@ -11,12 +11,15 @@ pipeline {
     }
 
     stages {
-        stage('Setup Flyway') {
+
+        stage('Run Flyway Migration') {
             steps {
-                sh """
-                   flyway migrate -url=jdbc:snowflake://TVDWARH-WSB57083.snowflakecomputing.com/?warehouse=COMPUTE_WH&role=ACCOUNTADMIN&authenticator=snowflake&db=flyway -user=akhilgurrapu -password=${SNOWFLAKE_PASSWORD} -locations="filesystem:./db"
-                """
+                    sh """
+                        ./flyway-${FLYWAY_VERSION}/flyway \
+                        migrate -url=jdbc:snowflake://TVDWARH-WSB57083.snowflakecomputing.com/?warehouse=COMPUTE_WH&role=ACCOUNTADMIN&authenticator=snowflake&db=flyway -user=akhilgurrapu -password=${SNOWFLAKE_PASSWORD} -locations="filesystem:./db"
+
+                    """
+                }
             }
         }
     }
-}
