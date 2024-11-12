@@ -16,7 +16,7 @@ pipeline {
             steps {
                     sh """
                         ./flyway-${FLYWAY_VERSION}/flyway \
-                        migrate -url=jdbc:snowflake://TVDWARH-WSB57083.snowflakecomputing.com/?warehouse=COMPUTE_WH&role=ACCOUNTADMIN&authenticator=snowflake&db=flyway -user=akhilgurrapu -password=${SNOWFLAKE_PASSWORD} -locations="filesystem:./db"
+                        migrate -url=jdbc:snowflake://TVDWARH-WSB57083.snowflakecomputing.com/?warehouse=COMPUTE_WH&role=ACCOUNTADMIN&authenticator=snowflake&db=flyway -user=${SNOWFLAKE_USER} -password=${SNOWFLAKE_PASSWORD} -locations="filesystem:./db"
 
                     """
                 }
