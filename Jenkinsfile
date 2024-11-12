@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        FLYWAY_VERSION = '9.20.0'
+        FLYWAY_VERSION = '10.21.0'
         SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         SNOWFLAKE_DATABASE = 'FLYWAY'
