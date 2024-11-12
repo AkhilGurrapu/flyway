@@ -7,8 +7,19 @@ pipeline {
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         SNOWFLAKE_DATABASE = 'FLYWAY'
     }
-    stages{
-        stage('Deploy to Snowflake') {
+
+    stages {
+        stage('Setup Flyway') {
+            steps {
+                sh """
+                    wget -q -O flyway.tar.gz https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/${FLYWAY_VERSION}/flyway-commandline-${FLYWAY_VERSION}-linux-x64.tar.gz
+                    tar -xzf flyway.tar.gz
+                    rm flyway.tar.gz
+                """
+            }
+        }
+
+        stage('Run Flyway Migration') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', usernameVariable: 'SNOWFLAKE_USER', passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                 sh """
@@ -21,7 +32,6 @@ pipeline {
             }
         }
     }
-    
 }
 
 
