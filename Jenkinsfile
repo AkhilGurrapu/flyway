@@ -8,18 +8,18 @@ pipeline {
         JAVA_TOOL_OPTIONS = '--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED'
     }
     
-    // parameters {
-        // choice(
-        //     name: 'DATABASE_NAME',
-        //     choices: ['FLYWAY', 'test', 'flywaychecking'],
-        //     description: 'Select the database to run migrations on'
-        // )
+    parameters {
+        choice(
+            name: 'DATABASE_NAME',
+            choices: ['FLYWAY', 'test', 'flywaychecking'],
+            description: 'Select the database to run migrations on'
+        )
         // choice(
         //     name: 'SCHEMA_NAME',
         //     choices: ['PUBLIC', 'DEV', 'PROD', 'DEMO'],
         //     description: 'Select the schema to use'
         // )
-    // }
+    }
     
     stages {
         stage('Run Flyway Migration') {
