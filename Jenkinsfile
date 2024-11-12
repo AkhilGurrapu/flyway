@@ -6,6 +6,7 @@ pipeline {
         SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         SNOWFLAKE_DATABASE = 'FLYWAY'
+        SNOWFLAKE_SCHEMA = 'PUBLIC'
     }
 
     stages {
@@ -26,6 +27,7 @@ pipeline {
                     ./flyway-${FLYWAY_VERSION}/flyway \
                     -url="jdbc:snowflake://${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=${SNOWFLAKE_WAREHOUSE}&db=${SNOWFLAKE_DATABASE}" \
                     -user=${SNOWFLAKE_USER} -password=${SNOWFLAKE_PASSWORD} \
+                    -schemas=${SNOWFLAKE_SCHEMA} \
                     -locations=filesystem:./db migrate
                 """
                 }
