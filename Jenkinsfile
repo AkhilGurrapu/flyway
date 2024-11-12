@@ -29,7 +29,6 @@ pipeline {
                         -password=${SNOWFLAKE_PASSWORD} \
                         -locations=filesystem:/var/lib/jenkins/workspace/Flyway/FlywayPL/db \
                         -connectRetries=10 \
-                        -jdbcProperties.JDBC_QUERY_RESULT_FORMAT=JSON \
                         migrate
                     """
                 }
