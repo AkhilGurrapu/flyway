@@ -34,7 +34,6 @@ pipeline {
                         -password=\${SNOWFLAKE_PASSWORD} \
                         -schemas=${params.SCHEMA_NAME} \
                         -locations=filesystem:./db \
-                        -defaultDatabase=\"flyway" \
                         -defaultSchema="flyway.flyway_sh" \
                         migrate
                     """
