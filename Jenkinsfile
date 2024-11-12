@@ -8,7 +8,7 @@ pipeline {
         JAVA_TOOL_OPTIONS = '--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED'
     }
     
-    parameters {
+    // parameters {
         // choice(
         //     name: 'DATABASE_NAME',
         //     choices: ['FLYWAY', 'test', 'flywaychecking'],
@@ -19,7 +19,7 @@ pipeline {
         //     choices: ['PUBLIC', 'DEV', 'PROD', 'DEMO'],
         //     description: 'Select the schema to use'
         // )
-    }
+    // }
     
     stages {
         stage('Run Flyway Migration') {
@@ -29,7 +29,7 @@ pipeline {
                                 passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh """
                         ./flyway-\${FLYWAY_VERSION}/flyway \
-                        -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}" \
+                        -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=${params.DATABASE_NAME}" \
                         -user=\${SNOWFLAKE_USER} \
                         -password=\${SNOWFLAKE_PASSWORD} \
                         -locations=filesystem:./db \
