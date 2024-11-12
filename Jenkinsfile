@@ -14,11 +14,11 @@ pipeline {
             choices: ['FLYWAY', 'test', 'flywaychecking'],
             description: 'Select the database to run migrations on'
         )
-        // choice(
-        //     name: 'SCHEMA_NAME',
-        //     choices: ['PUBLIC', 'DEV', 'PROD', 'DEMO'],
-        //     description: 'Select the schema to use'
-        // )
+        choice(
+            name: 'FLYWAY_TASK',
+            choices: ['info', 'migrate'],
+            description: 'Select the schema to use'
+        )
     }
     
     stages {
@@ -34,7 +34,7 @@ pipeline {
                         -password=\${SNOWFLAKE_PASSWORD} \
                         -locations=filesystem:./db \
                         -defaultSchema="flyway" \
-                        migrate
+                        \${FLYWAY_TASK}
                     """
                 }
             }
