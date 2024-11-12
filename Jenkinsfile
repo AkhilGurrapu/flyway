@@ -29,7 +29,7 @@ pipeline {
                                 passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh """
                         ./flyway-\${FLYWAY_VERSION}/flyway \
-                        -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}" \
+                        -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}"\
                         -user=\${SNOWFLAKE_USER} \
                         -password=\${SNOWFLAKE_PASSWORD} \
                         -locations=filesystem:./db \
