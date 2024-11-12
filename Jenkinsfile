@@ -11,21 +11,21 @@ pipeline {
     }
     
     stages {
-        stage('Setup Flyway') {
-            steps {
-                sh """
-                    wget -q -O flyway.tar.gz https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/\${FLYWAY_VERSION}/flyway-commandline-\${FLYWAY_VERSION}-linux-x64.tar.gz
-                    tar -xzf flyway.tar.gz
-                    rm flyway.tar.gz
-                """
-            }
-        }
+        // stage('Setup Flyway') {
+        //     steps {
+        //         sh """
+        //             wget -q -O flyway.tar.gz https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/\${FLYWAY_VERSION}/flyway-commandline-\${FLYWAY_VERSION}-linux-x64.tar.gz
+        //             tar -xzf flyway.tar.gz
+        //             rm flyway.tar.gz
+        //         """
+        //     }
+        // }
         
         stage('Run Flyway Migration') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', 
-                               usernameVariable: 'SNOWFLAKE_USER', 
-                               passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
+                                usernameVariable: 'SNOWFLAKE_USER', 
+                                passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh """
                         ./flyway-\${FLYWAY_VERSION}/flyway \
                         -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${SNOWFLAKE_DATABASE}" \
