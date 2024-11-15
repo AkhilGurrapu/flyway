@@ -24,12 +24,23 @@ pipeline {
         stage('Get Flyway Version') {
             steps {
                 script {
-                    // Get Flyway version from the installed version on agent
-                    env.FLYWAY_VERSION = sh(
-                        script: 'flyway --version | grep -oP "Flyway\\s+\\K[0-9.]+"',
+                    // Find the Flyway directory dynamically
+                    def flywayDir = sh(
+                        script: 'ls -d flyway-* | head -n 1',
                         returnStdout: true
                     ).trim()
+                    
+                    // Store the Flyway path
+                    env.FLYWAY_PATH = "./${flywayDir}/flyway"
+                    
+                    // Get and store the version
+                    env.FLYWAY_VERSION = sh(
+                        script: "${env.FLYWAY_PATH} --version | grep -oP 'Flyway\\s+\\K[0-9.]+'",
+                        returnStdout: true
+                    ).trim()
+                    
                     echo "Using Flyway version: ${env.FLYWAY_VERSION}"
+                    echo "Flyway path: ${env.FLYWAY_PATH}"
                 }
             }
         }
@@ -49,7 +60,7 @@ pipeline {
                                 usernameVariable: 'SNOWFLAKE_USER', 
                                 passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh """
-                        flyway \
+                        ${env.FLYWAY_PATH} \
                         -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}"\
                         -user=\${SNOWFLAKE_USER} \
                         -password=\${SNOWFLAKE_PASSWORD} \
