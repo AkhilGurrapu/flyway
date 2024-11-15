@@ -5,6 +5,7 @@ pipeline {
         SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         JAVA_TOOL_OPTIONS = '--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED'
+        FLYWAY_VERSION = '10.21.0'
     }
     
     parameters {
@@ -21,18 +22,6 @@ pipeline {
     }
     
     stages {
-        stage('Get Flyway Version') {
-            steps {
-                script {
-                    env.FLYWAY_VERSION = sh(
-                        script: 'flyway --version | cut -d" " -f2',
-                        returnStdout: true
-                    ).trim()
-                    echo "Using Flyway version: ${env.FLYWAY_VERSION}"
-                }
-            }
-        }
-
         stage('Read Configuration') {
             steps {
                 script {
@@ -48,7 +37,7 @@ pipeline {
                                 usernameVariable: 'SNOWFLAKE_USER', 
                                 passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh """
-                        flyway \
+                        ./flyway-${FLYWAY_VERSION}/flyway \
                         -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}"\
                         -user=\${SNOWFLAKE_USER} \
                         -password=\${SNOWFLAKE_PASSWORD} \
