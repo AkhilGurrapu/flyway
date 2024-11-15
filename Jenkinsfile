@@ -25,10 +25,10 @@ pipeline {
             steps {
                 script {
                     env.FLYWAY_VERSION = sh(
-                        script: './flyway --version | grep -oP "Flyway\\s+\\K[0-9.]+"',
+                        script: 'flyway --version | cut -d" " -f2',
                         returnStdout: true
                     ).trim()
-                    echo "Detected Flyway version: ${env.FLYWAY_VERSION}"
+                    echo "Using Flyway version: ${env.FLYWAY_VERSION}"
                 }
             }
         }
@@ -48,7 +48,7 @@ pipeline {
                                 usernameVariable: 'SNOWFLAKE_USER', 
                                 passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh """
-                        ./flyway-\${FLYWAY_VERSION}/flyway \
+                        flyway \
                         -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}"\
                         -user=\${SNOWFLAKE_USER} \
                         -password=\${SNOWFLAKE_PASSWORD} \
