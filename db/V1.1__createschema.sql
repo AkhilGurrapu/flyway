@@ -1,0 +1,1 @@
+call ADMIN_DB.ADMIN_SH.SCHEMA_PROV('test', 'new_test');
