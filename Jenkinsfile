@@ -2,7 +2,6 @@ pipeline {
     agent any
     
     environment {
-        FLYWAY_VERSION = '10.21.0'
         SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         JAVA_TOOL_OPTIONS = '--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED'
@@ -22,6 +21,19 @@ pipeline {
     }
     
     stages {
+        stage('Get Flyway Version') {
+            steps {
+                script {
+                    // Get Flyway version from the installed version on agent
+                    env.FLYWAY_VERSION = sh(
+                        script: 'flyway --version | grep -oP "Flyway\\s+\\K[0-9.]+"',
+                        returnStdout: true
+                    ).trim()
+                    echo "Using Flyway version: ${env.FLYWAY_VERSION}"
+                }
+            }
+        }
+        
         stage('Read Configuration') {
             steps {
                 script {
