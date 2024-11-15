@@ -2,6 +2,7 @@ pipeline {
     agent any
     
     environment {
+        FLYWAY_VERSION = '10.21.0'
         SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         JAVA_TOOL_OPTIONS = '--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED'
@@ -21,30 +22,6 @@ pipeline {
     }
     
     stages {
-        stage('Get Flyway Version') {
-            steps {
-                script {
-                    // Find the Flyway directory dynamically
-                    def flywayDir = sh(
-                        script: 'ls -d flyway-* | head -n 1',
-                        returnStdout: true
-                    ).trim()
-                    
-                    // Store the Flyway path
-                    env.FLYWAY_PATH = "./${flywayDir}/flyway"
-                    
-                    // Get and store the version
-                    env.FLYWAY_VERSION = sh(
-                        script: "${env.FLYWAY_PATH} --version | grep -oP 'Flyway\\s+\\K[0-9.]+'",
-                        returnStdout: true
-                    ).trim()
-                    
-                    echo "Using Flyway version: ${env.FLYWAY_VERSION}"
-                    echo "Flyway path: ${env.FLYWAY_PATH}"
-                }
-            }
-        }
-        
         stage('Read Configuration') {
             steps {
                 script {
@@ -60,7 +37,7 @@ pipeline {
                                 usernameVariable: 'SNOWFLAKE_USER', 
                                 passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh """
-                        ${env.FLYWAY_PATH} \
+                        ./flyway-\${FLYWAY_VERSION}/flyway \
                         -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}"\
                         -user=\${SNOWFLAKE_USER} \
                         -password=\${SNOWFLAKE_PASSWORD} \
