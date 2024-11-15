@@ -1,1 +1,1 @@
-create database if not exists flywaychecking_new;
+call ADMIN_DB.ADMIN_SH.SCHEMA_PROV('${DATABASE_NAME}', 'demo_test');

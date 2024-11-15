@@ -10,18 +10,27 @@ pipeline {
     
     parameters {
         choice(
-            name: 'DATABASE_NAME',
-            choices: ['FLYWAY', 'test', 'flywaychecking'],
-            description: 'Select the database to run migrations on'
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'test', 'prod'],
+            description: 'Select the environment to run migrations on'
         )
         choice(
             name: 'FLYWAY_TASK',
             choices: ['info', 'migrate'],
-            description: 'Select the schema to use'
+            description: 'Select the Flyway task to execute'
         )
     }
     
     stages {
+        stage('Read Configuration') {
+            steps {
+                script {
+                    def config = readProperties file: "configs/${params.ENVIRONMENT}.conf"
+                    env.DATABASE_NAME = config.database
+                }
+            }
+        }
+        
         stage('Run Flyway Migration') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', 
