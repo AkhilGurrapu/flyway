@@ -43,6 +43,7 @@ pipeline {
                         -password=\${SNOWFLAKE_PASSWORD} \
                         -locations=filesystem:./db \
                         -defaultSchema="flyway" \
+                        -placeholders.DATABASE_NAME=\${DATABASE_NAME} \
                         \${FLYWAY_TASK}
                     """
                 }
