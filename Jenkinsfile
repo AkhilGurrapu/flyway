@@ -4,6 +4,7 @@ pipeline {
     environment {
         SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
+        SNOWFLAKE_ROLE = 'ACCOUNTADMIN'
         JAVA_TOOL_OPTIONS = '--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED'
         FLYWAY_VERSION = '10.21.0'
     }
@@ -16,7 +17,7 @@ pipeline {
         )
         choice(
             name: 'FLYWAY_TASK',
-            choices: ['info', 'migrate'],
+            choices: ['info', 'migrate', 'validate', 'repair'],
             description: 'Select the Flyway task to execute'
         )
     }
@@ -38,7 +39,7 @@ pipeline {
                                 passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
                     sh """
                         ./flyway-${FLYWAY_VERSION}/flyway \
-                        -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}"\
+                        -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}&role=\${SNOWFLAKE_ROLE}"\
                         -user=\${SNOWFLAKE_USER} \
                         -password=\${SNOWFLAKE_PASSWORD} \
                         -locations=filesystem:./db \
