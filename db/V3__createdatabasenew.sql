@@ -1,1 +1,0 @@
-call ADMIN_DB.ADMIN_SH.SCHEMA_PROV('${DATABASE_NAME}', 'demo_test');
