@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        SNOWFLAKE_ACCOUNT = 'TVDWARH-WSB57083'
+        SNOWFLAKE_ACCOUNT = 'ASCEAJN-RD78664'
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         SNOWFLAKE_ROLE = 'ACCOUNTADMIN'
         JAVA_TOOL_OPTIONS = '--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED'
