@@ -15,22 +15,65 @@ pipeline {
             choices: ['Select Type', 'flyway', 'scripts'],
             description: 'Select whether to run Flyway migrations or SQL scripts'
         )
-        // Flyway Parameters
-        choice(
+        activeChoice(
             name: 'ENVIRONMENT',
-            choices: ['dev', 'test', 'prod'],
-            description: 'Select the environment for Flyway migrations'
+            script: [
+                $class: 'GroovyScript',
+                script: [
+                    classpath: [], 
+                    sandbox: true, 
+                    script: '''
+                        if (EXECUTION_TYPE.equals('flyway')) {
+                            return ['dev', 'test', 'prod']
+                        }
+                        return []
+                    '''
+                ]
+            ],
+            description: 'Select the environment for Flyway migrations',
+            filterLength: 1,
+            filterable: false,
+            referencedParameters: 'EXECUTION_TYPE'
         )
-        choice(
+        activeChoice(
             name: 'FLYWAY_TASK',
-            choices: ['info', 'migrate', 'validate', 'repair'],
-            description: 'Select the Flyway task to execute'
+            script: [
+                $class: 'GroovyScript',
+                script: [
+                    classpath: [], 
+                    sandbox: true, 
+                    script: '''
+                        if (EXECUTION_TYPE.equals('flyway')) {
+                            return ['info', 'migrate', 'validate', 'repair']
+                        }
+                        return []
+                    '''
+                ]
+            ],
+            description: 'Select the Flyway task to execute',
+            filterLength: 1,
+            filterable: false,
+            referencedParameters: 'EXECUTION_TYPE'
         )
-        // Scripts Parameters
-        choice(
+        activeChoice(
             name: 'SCRIPT_ENV',
-            choices: ['prod', 'non-prod'],
-            description: 'Select the environment for script execution'
+            script: [
+                $class: 'GroovyScript',
+                script: [
+                    classpath: [], 
+                    sandbox: true, 
+                    script: '''
+                        if (EXECUTION_TYPE.equals('scripts')) {
+                            return ['prod', 'non-prod']
+                        }
+                        return []
+                    '''
+                ]
+            ],
+            description: 'Select the environment for script execution',
+            filterLength: 1,
+            filterable: false,
+            referencedParameters: 'EXECUTION_TYPE'
         )
     }
     
