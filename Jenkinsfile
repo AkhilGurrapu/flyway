@@ -7,46 +7,7 @@ pipeline {
         SNOWFLAKE_ROLE = 'ACCOUNTADMIN'
         JAVA_TOOL_OPTIONS = '--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED'
         FLYWAY_VERSION = '10.21.0'
-    }
-    
-    parameters {
-        activeChoiceParam('EXECUTION_TYPE') {
-            description('Select Flyway or Scripts execution')
-            groovyScript {
-                script('return ["Flyway", "Scripts"]')
-            }
-        }
-        
-        activeChoiceReactiveParam('ENVIRONMENT') {
-            description('Select the environment')
-            groovyScript {
-                script('''
-                    if (EXECUTION_TYPE.equals("Flyway")) {
-                        return ["dev", "test", "prod"]
-                    } else {
-                        return ["prod", "non-prod"]
-                    }
-                ''')
-                fallbackScript('return ["ERROR"]')
-            }
-            referencedParameters('EXECUTION_TYPE')
-        }
-        
-        activeChoiceReactiveParam('OPERATION_TYPE') {
-            description('Select the operation type')
-            groovyScript {
-                script('''
-                    if (EXECUTION_TYPE.equals("Flyway")) {
-                        return ["info", "validate", "migrate", "repair"]
-                    } else {
-                        return []
-                    }
-                ''')
-                fallbackScript('return ["N/A"]')
-            }
-            referencedParameters('EXECUTION_TYPE')
-        }
-    }
+    }  
     
     stages {
         stage('Execute') {
