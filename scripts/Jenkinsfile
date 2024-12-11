@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+    
+    environment {
+        SNOWFLAKE_ACCOUNT = 'ASCEAJN-RD78664'
+        SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
+        SNOWFLAKE_ROLE = 'ACCOUNTADMIN'
+    }
+    
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'prod'],
+            description: 'Select the environment to run roles script on'
+        )
+    }
+    
+    stages {
+        stage('Read Configuration') {
+            steps {
+                script {
+                    def config = readProperties file: "configs/${params.ENVIRONMENT}.conf"
+                    env.DATABASE_NAME = config.database
+                }
+            }
+        }
+        
+        stage('Execute Roles Script') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', 
+                                usernameVariable: 'SNOWFLAKE_USER', 
+                                passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
+                    sh """
+                        snowsql \
+                        -a ${SNOWFLAKE_ACCOUNT} \
+                        -w ${SNOWFLAKE_WAREHOUSE} \
+                        -r ${SNOWFLAKE_ROLE} \
+                        -d ${DATABASE_NAME} \
+                        -u ${SNOWFLAKE_USER} \
+                        -p ${SNOWFLAKE_PASSWORD} \
+                        -f ./scripts/roles.sql
+                    """
+                }
+            }
+        }
+    }
+} 

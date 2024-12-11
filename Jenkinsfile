@@ -9,73 +9,46 @@ pipeline {
         FLYWAY_VERSION = '10.21.0'
     }
     
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'test', 'prod'],
+            description: 'Select the environment to run migrations on'
+        )
+        choice(
+            name: 'FLYWAY_TASK',
+            choices: ['info', 'migrate', 'validate', 'repair'],
+            description: 'Select the Flyway task to execute'
+        )
+    }
     
     stages {
-        stage('Execute') {
+        stage('Read Configuration') {
             steps {
                 script {
-                    if (params.EXECUTION_TYPE == 'Flyway') {
-                        executeFlyway()
-                    } else {
-                        executeScripts()
-                    }
+                    def config = readProperties file: "configs/${params.ENVIRONMENT}.conf"
+                    env.DATABASE_NAME = config.database
                 }
             }
         }
-    }
-}
-
-def executeFlyway() {
-    stage('Read Flyway Configuration') {
-        script {
-            def config = readProperties file: "configs/${params.ENVIRONMENT.toLowerCase()}.conf"
-            env.DATABASE_NAME = config.database
-        }
-    }
-    
-    stage('Run Flyway Migration') {
-        withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', 
-                        usernameVariable: 'SNOWFLAKE_USER', 
-                        passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
-            sh """
-                ./flyway-${FLYWAY_VERSION}/flyway \
-                -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}&role=\${SNOWFLAKE_ROLE}"\
-                -user=\${SNOWFLAKE_USER} \
-                -password=\${SNOWFLAKE_PASSWORD} \
-                -locations=filesystem:./db \
-                -defaultSchema="flyway" \
-                -placeholders.DATABASE_NAME=\${DATABASE_NAME} \
-                \${params.OPERATION_TYPE}
-            """
-        }
-    }
-}
-
-def executeScripts() {
-    stage('Read Script Configuration') {
-        script {
-            def configFile = params.ENVIRONMENT == 'prod' ? 'configs/prod.conf' : 'configs/dev.conf'
-            def config = readProperties file: configFile
-            env.DATABASE_NAME = config.database
-        }
-    }
-    
-    stage('Execute SQL Scripts') {
-        withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', 
-                        usernameVariable: 'SNOWFLAKE_USER', 
-                        passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
-            sh """
-                for script in scripts/*.sql; do
-                    echo "Executing \$script..."
-                    snowsql -a \${SNOWFLAKE_ACCOUNT} \
-                    -u \${SNOWFLAKE_USER} \
-                    -p \${SNOWFLAKE_PASSWORD} \
-                    -w \${SNOWFLAKE_WAREHOUSE} \
-                    -d \${DATABASE_NAME} \
-                    -r \${SNOWFLAKE_ROLE} \
-                    -f \$script
-                done
-            """
+        
+        stage('Run Flyway Migration') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'snowflake-credentials1', 
+                                usernameVariable: 'SNOWFLAKE_USER', 
+                                passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
+                    sh """
+                        ./flyway-${FLYWAY_VERSION}/flyway \
+                        -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}&role=\${SNOWFLAKE_ROLE}"\
+                        -user=\${SNOWFLAKE_USER} \
+                        -password=\${SNOWFLAKE_PASSWORD} \
+                        -locations=filesystem:./db \
+                        -defaultSchema="flyway" \
+                        -placeholders.DATABASE_NAME=\${DATABASE_NAME} \
+                        \${FLYWAY_TASK}
+                    """
+                }
+            }
         }
     }
 }
