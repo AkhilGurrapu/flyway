@@ -10,78 +10,70 @@ pipeline {
     }
     
     parameters {
-        // Initial parameter
-        activeChoiceParam('EXECUTION_TYPE') {
-            description('Select Flyway or Scripts execution')
-            groovyScript {
-                script('return ["Select Type", "Flyway", "Scripts"]')
-            }
-        }
-        
-        // Dynamic parameters based on EXECUTION_TYPE
-        activeChoiceReactiveParam('ENVIRONMENT') {
-            description('Select the environment')
-            groovyScript {
-                script('''
-                    if (EXECUTION_TYPE.equals("Flyway")) {
-                        return ["dev", "test", "prod"]
-                    } else if (EXECUTION_TYPE.equals("Scripts")) {
-                        return ["prod", "non-prod"]
-                    }
-                    return []
-                ''')
-                fallbackScript('return ["ERROR"]')
-            }
-            referencedParameters('EXECUTION_TYPE')
-        }
-        
-        // Flyway-specific parameter
-        activeChoiceReactiveParam('OPERATION_TYPE') {
-            description('Select the operation type')
-            groovyScript {
-                script('''
-                    if (EXECUTION_TYPE.equals("Flyway")) {
-                        return ["info", "validate", "migrate", "repair"]
-                    }
-                    return []
-                ''')
-                fallbackScript('return ["N/A"]')
-            }
-            referencedParameters('EXECUTION_TYPE')
-        }
+        [
+            $class: 'ChoiceParameter',
+            choiceType: 'PT_SINGLE_SELECT',
+            description: 'Select Flyway or Scripts execution',
+            name: 'EXECUTION_TYPE',
+            script: [
+                $class: 'GroovyScript',
+                script: [
+                    classpath: [],
+                    sandbox: true,
+                    script: 'return ["Flyway", "Scripts"]'
+                ]
+            ]
+        ],
+        [
+            $class: 'CascadeChoiceParameter',
+            choiceType: 'PT_SINGLE_SELECT',
+            description: 'Select the environment',
+            name: 'ENVIRONMENT',
+            referencedParameters: 'EXECUTION_TYPE',
+            script: [
+                $class: 'GroovyScript',
+                script: [
+                    classpath: [],
+                    sandbox: true,
+                    script: '''
+                        if (EXECUTION_TYPE == 'Flyway') {
+                            return ['dev', 'test', 'prod']
+                        } else {
+                            return ['prod', 'non-prod']
+                        }
+                    '''
+                ]
+            ]
+        ],
+        [
+            $class: 'CascadeChoiceParameter',
+            choiceType: 'PT_SINGLE_SELECT',
+            description: 'Select the operation type',
+            name: 'OPERATION_TYPE',
+            referencedParameters: 'EXECUTION_TYPE',
+            script: [
+                $class: 'GroovyScript',
+                script: [
+                    classpath: [],
+                    sandbox: true,
+                    script: '''
+                        if (EXECUTION_TYPE == 'Flyway') {
+                            return ['info', 'validate', 'migrate', 'repair']
+                        }
+                        return []
+                    '''
+                ]
+            ]
+        ]
     }
     
     stages {
-        stage('Parameter Validation') {
-            steps {
-                script {
-                    if (params.EXECUTION_TYPE == 'Select Type') {
-                        error "Please select a valid execution type (Flyway or Scripts)"
-                    }
-                    
-                    // Validate Flyway parameters
-                    if (params.EXECUTION_TYPE == 'Flyway') {
-                        if (!params.ENVIRONMENT || !params.OPERATION_TYPE) {
-                            error "Please provide all required Flyway parameters"
-                        }
-                    }
-                    
-                    // Validate Scripts parameters
-                    if (params.EXECUTION_TYPE == 'Scripts') {
-                        if (!params.ENVIRONMENT) {
-                            error "Please provide all required Scripts parameters"
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Execute Selected Task') {
             steps {
                 script {
                     if (params.EXECUTION_TYPE == 'Flyway') {
                         executeFlyway()
-                    } else if (params.EXECUTION_TYPE == 'Scripts') {
+                    } else {
                         executeScripts()
                     }
                 }
