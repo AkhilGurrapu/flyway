@@ -9,47 +9,6 @@ pipeline {
         FLYWAY_VERSION = '10.21.0'
     }
     
-    parameters {
-        choice(name: 'EXECUTION_TYPE', choices: ['Flyway', 'Scripts'], description: 'Select Flyway or Scripts execution')
-        [$class: 'CascadeChoiceParameter', 
-         name: 'ENVIRONMENT', 
-         choiceType: 'PT_SINGLE_SELECT',
-         description: 'Select the environment',
-         filterLength: 1,
-         filterable: false,
-         referencedParameters: 'EXECUTION_TYPE',
-         script: [
-             $class: 'GroovyScript', 
-             fallbackScript: [classpath: [], sandbox: false, script: "return ['ERROR']"],
-             script: [classpath: [], sandbox: false, script: '''
-                 if (EXECUTION_TYPE.equals("Flyway")) {
-                     return ["dev", "test", "prod"]
-                 } else {
-                     return ["prod", "non-prod"]
-                 }
-             ''']
-         ]
-        ]
-        [$class: 'CascadeChoiceParameter', 
-         name: 'OPERATION_TYPE', 
-         choiceType: 'PT_SINGLE_SELECT',
-         description: 'Select the operation type',
-         filterLength: 1,
-         filterable: false,
-         referencedParameters: 'EXECUTION_TYPE',
-         script: [
-             $class: 'GroovyScript', 
-             fallbackScript: [classpath: [], sandbox: false, script: "return ['N/A']"],
-             script: [classpath: [], sandbox: false, script: '''
-                 if (EXECUTION_TYPE.equals("Flyway")) {
-                     return ["info", "validate", "migrate", "repair"]
-                 } else {
-                     return []
-                 }
-             ''']
-         ]
-        ]
-    }
     
     stages {
         stage('Execute') {
@@ -80,13 +39,13 @@ def executeFlyway() {
                         passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
             sh """
                 ./flyway-${FLYWAY_VERSION}/flyway \
-                -url="jdbc:snowflake://${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=${SNOWFLAKE_WAREHOUSE}&db=${DATABASE_NAME}&role=${SNOWFLAKE_ROLE}"\
-                -user=${SNOWFLAKE_USER} \
-                -password=${SNOWFLAKE_PASSWORD} \
+                -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}&role=\${SNOWFLAKE_ROLE}"\
+                -user=\${SNOWFLAKE_USER} \
+                -password=\${SNOWFLAKE_PASSWORD} \
                 -locations=filesystem:./db \
                 -defaultSchema="flyway" \
-                -placeholders.DATABASE_NAME=${DATABASE_NAME} \
-                ${params.OPERATION_TYPE}
+                -placeholders.DATABASE_NAME=\${DATABASE_NAME} \
+                \${params.OPERATION_TYPE}
             """
         }
     }
@@ -108,12 +67,12 @@ def executeScripts() {
             sh """
                 for script in scripts/*.sql; do
                     echo "Executing \$script..."
-                    snowsql -a ${SNOWFLAKE_ACCOUNT} \
-                    -u ${SNOWFLAKE_USER} \
-                    -p ${SNOWFLAKE_PASSWORD} \
-                    -w ${SNOWFLAKE_WAREHOUSE} \
-                    -d ${DATABASE_NAME} \
-                    -r ${SNOWFLAKE_ROLE} \
+                    snowsql -a \${SNOWFLAKE_ACCOUNT} \
+                    -u \${SNOWFLAKE_USER} \
+                    -p \${SNOWFLAKE_PASSWORD} \
+                    -w \${SNOWFLAKE_WAREHOUSE} \
+                    -d \${DATABASE_NAME} \
+                    -r \${SNOWFLAKE_ROLE} \
                     -f \$script
                 done
             """
