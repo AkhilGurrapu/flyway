@@ -13,10 +13,16 @@ pipeline {
         stage('Execute') {
             steps {
                 script {
-                    if (params.EXECUTION_TYPE == 'Flyway') {
+                    echo "Execution Type: ${params.EXECUTION_TYPE}"
+                    echo "Environment: ${params.ENVIRONMENT}"
+                    echo "Operation Type: ${params.OPERATION_TYPE}"
+                    
+                    if (params.EXECUTION_TYPE?.trim() && params.EXECUTION_TYPE == 'Flyway') {
                         executeFlyway()
-                    } else {
+                    } else if (params.EXECUTION_TYPE?.trim() && params.EXECUTION_TYPE == 'Scripts') {
                         executeScripts()
+                    } else {
+                        error "Invalid or missing EXECUTION_TYPE parameter"
                     }
                 }
             }
@@ -27,8 +33,17 @@ pipeline {
 def executeFlyway() {
     stage('Read Flyway Configuration') {
         script {
+            if (!params.ENVIRONMENT?.trim()) {
+                error "Environment parameter is required for Flyway execution"
+            }
+            if (!params.OPERATION_TYPE?.trim()) {
+                error "Operation Type parameter is required for Flyway execution"
+            }
+            
             def config = readProperties file: "configs/${params.ENVIRONMENT.toLowerCase()}.conf"
             env.DATABASE_NAME = config.database
+            
+            echo "Database Name: ${env.DATABASE_NAME}"
         }
     }
     
@@ -38,13 +53,13 @@ def executeFlyway() {
                         passwordVariable: 'SNOWFLAKE_PASSWORD')]) {
             sh """
                 ./flyway-${FLYWAY_VERSION}/flyway \
-                -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}&role=\${SNOWFLAKE_ROLE}"\
+                -url="jdbc:snowflake://\${SNOWFLAKE_ACCOUNT}.snowflakecomputing.com/?warehouse=\${SNOWFLAKE_WAREHOUSE}&db=\${DATABASE_NAME}&role=\${SNOWFLAKE_ROLE}" \
                 -user=\${SNOWFLAKE_USER} \
                 -password=\${SNOWFLAKE_PASSWORD} \
                 -locations=filesystem:./db \
                 -defaultSchema="flyway" \
                 -placeholders.DATABASE_NAME=\${DATABASE_NAME} \
-                \${params.OPERATION_TYPE}
+                ${params.OPERATION_TYPE ?: 'info'}
             """
         }
     }
@@ -53,9 +68,15 @@ def executeFlyway() {
 def executeScripts() {
     stage('Read Script Configuration') {
         script {
+            if (!params.ENVIRONMENT?.trim()) {
+                error "Environment parameter is required for Scripts execution"
+            }
+            
             def configFile = params.ENVIRONMENT == 'prod' ? 'configs/prod.conf' : 'configs/dev.conf'
             def config = readProperties file: configFile
             env.DATABASE_NAME = config.database
+            
+            echo "Database Name: ${env.DATABASE_NAME}"
         }
     }
     
