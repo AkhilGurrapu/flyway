@@ -10,71 +10,45 @@ pipeline {
     }
     
     parameters {
-        choice(
-            name: 'EXECUTION_TYPE',
-            choices: ['Select Type', 'flyway', 'scripts'],
-            description: 'Select whether to run Flyway migrations or SQL scripts'
-        )
-        activeChoice(
-            name: 'ENVIRONMENT',
-            script: [
-                $class: 'GroovyScript',
-                script: [
-                    classpath: [], 
-                    sandbox: true, 
-                    script: '''
-                        if (EXECUTION_TYPE.equals('flyway')) {
-                            return ['dev', 'test', 'prod']
-                        }
-                        return []
-                    '''
-                ]
-            ],
-            description: 'Select the environment for Flyway migrations',
-            filterLength: 1,
-            filterable: false,
-            referencedParameters: 'EXECUTION_TYPE'
-        )
-        activeChoice(
-            name: 'FLYWAY_TASK',
-            script: [
-                $class: 'GroovyScript',
-                script: [
-                    classpath: [], 
-                    sandbox: true, 
-                    script: '''
-                        if (EXECUTION_TYPE.equals('flyway')) {
-                            return ['info', 'migrate', 'validate', 'repair']
-                        }
-                        return []
-                    '''
-                ]
-            ],
-            description: 'Select the Flyway task to execute',
-            filterLength: 1,
-            filterable: false,
-            referencedParameters: 'EXECUTION_TYPE'
-        )
-        activeChoice(
-            name: 'SCRIPT_ENV',
-            script: [
-                $class: 'GroovyScript',
-                script: [
-                    classpath: [], 
-                    sandbox: true, 
-                    script: '''
-                        if (EXECUTION_TYPE.equals('scripts')) {
-                            return ['prod', 'non-prod']
-                        }
-                        return []
-                    '''
-                ]
-            ],
-            description: 'Select the environment for script execution',
-            filterLength: 1,
-            filterable: false,
-            referencedParameters: 'EXECUTION_TYPE'
-        )
+        // Initial parameter
+        activeChoiceParam('EXECUTION_TYPE') {
+            description('Select Flyway or Scripts execution')
+            groovyScript {
+                script('return ["Select Type", "Flyway", "Scripts"]')
+            }
+        }
+        
+        // Dynamic parameters based on EXECUTION_TYPE
+        activeChoiceReactiveParam('ENVIRONMENT') {
+            description('Select the environment')
+            groovyScript {
+                script('''
+                    if (EXECUTION_TYPE.equals("Flyway")) {
+                        return ["dev", "test", "prod"]
+                    } else if (EXECUTION_TYPE.equals("Scripts")) {
+                        return ["prod", "non-prod"]
+                    }
+                    return []
+                ''')
+                fallbackScript('return ["ERROR"]')
+            }
+            referencedParameters('EXECUTION_TYPE')
+        }
+        
+        // Flyway-specific parameter
+        activeChoiceReactiveParam('OPERATION_TYPE') {
+            description('Select the operation type')
+            groovyScript {
+                script('''
+                    if (EXECUTION_TYPE.equals("Flyway")) {
+                        return ["info", "validate", "migrate", "repair"]
+                    }
+                    return []
+                ''')
+                fallbackScript('return ["N/A"]')
+            }
+            referencedParameters('EXECUTION_TYPE')
+        }
     }
     
     stages {
@@ -82,19 +56,19 @@ pipeline {
             steps {
                 script {
                     if (params.EXECUTION_TYPE == 'Select Type') {
-                        error "Please select a valid execution type (flyway or scripts)"
+                        error "Please select a valid execution type (Flyway or Scripts)"
                     }
                     
                     // Validate Flyway parameters
-                    if (params.EXECUTION_TYPE == 'flyway') {
-                        if (!params.ENVIRONMENT || !params.FLYWAY_TASK) {
+                    if (params.EXECUTION_TYPE == 'Flyway') {
+                        if (!params.ENVIRONMENT || !params.OPERATION_TYPE) {
                             error "Please provide all required Flyway parameters"
                         }
                     }
                     
                     // Validate Scripts parameters
-                    if (params.EXECUTION_TYPE == 'scripts') {
-                        if (!params.SCRIPT_ENV) {
+                    if (params.EXECUTION_TYPE == 'Scripts') {
+                        if (!params.ENVIRONMENT) {
                             error "Please provide all required Scripts parameters"
                         }
                     }
@@ -105,9 +79,9 @@ pipeline {
         stage('Execute Selected Task') {
             steps {
                 script {
-                    if (params.EXECUTION_TYPE == 'flyway') {
+                    if (params.EXECUTION_TYPE == 'Flyway') {
                         executeFlyway()
-                    } else if (params.EXECUTION_TYPE == 'scripts') {
+                    } else if (params.EXECUTION_TYPE == 'Scripts') {
                         executeScripts()
                     }
                 }
@@ -119,7 +93,7 @@ pipeline {
 def executeFlyway() {
     stage('Read Flyway Configuration') {
         script {
-            def config = readProperties file: "configs/${params.ENVIRONMENT}.conf"
+            def config = readProperties file: "configs/${params.ENVIRONMENT.toLowerCase()}.conf"
             env.DATABASE_NAME = config.database
         }
     }
@@ -136,7 +110,7 @@ def executeFlyway() {
                 -locations=filesystem:./db \
                 -defaultSchema="flyway" \
                 -placeholders.DATABASE_NAME=\${DATABASE_NAME} \
-                \${FLYWAY_TASK}
+                \${params.OPERATION_TYPE}
             """
         }
     }
@@ -145,7 +119,7 @@ def executeFlyway() {
 def executeScripts() {
     stage('Read Script Configuration') {
         script {
-            def configFile = params.SCRIPT_ENV == 'prod' ? 'configs/prod.conf' : 'configs/dev.conf'
+            def configFile = params.ENVIRONMENT == 'prod' ? 'configs/prod.conf' : 'configs/dev.conf'
             def config = readProperties file: configFile
             env.DATABASE_NAME = config.database
         }
