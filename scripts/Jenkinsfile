@@ -5,6 +5,7 @@ pipeline {
         SNOWFLAKE_ACCOUNT = 'ASCEAJN-RD78664'
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         SNOWFLAKE_ROLE = 'ACCOUNTADMIN'
+        PATH = "${env.PATH}:/usr/local/bin"
     }
     
     parameters {
