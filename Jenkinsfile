@@ -10,43 +10,57 @@ pipeline {
     }
     
     parameters {
-        activeChoiceParam('EXECUTION_TYPE') {
-            description('Select Flyway or Scripts execution')
-            groovyScript {
-                script('return ["Flyway", "Scripts"]')
+        choice(name: 'EXECUTION_TYPE', choices: ['Flyway', 'Scripts'], description: 'Select Flyway or Scripts execution')
+        [$class: 'CascadeChoiceParameter', 
+         name: 'ENVIRONMENT', 
+         choiceType: 'PT_SINGLE_SELECT',
+         description: 'Select the environment',
+         filterLength: 1,
+         filterable: false,
+         referencedParameters: 'EXECUTION_TYPE',
+         script: [
+             $class: 'GroovyScript', 
+             fallbackScript: [classpath: [], sandbox: false, script: "return ['ERROR']"],
+             script: [classpath: [], sandbox: false, script: '''
+                 if (EXECUTION_TYPE.equals("Flyway")) {
+                     return ["dev", "test", "prod"]
+                 } else {
+                     return ["prod", "non-prod"]
+                 }
+             ''']
+         ]
+        ]
+        [$class: 'CascadeChoiceParameter', 
+         name: 'OPERATION_TYPE', 
+         choiceType: 'PT_SINGLE_SELECT',
+         description: 'Select the operation type',
+         filterLength: 1,
+         filterable: false,
+         referencedParameters: 'EXECUTION_TYPE',
+         script: [
+             $class: 'GroovyScript', 
+             fallbackScript: [classpath: [], sandbox: false, script: "return ['N/A']"],
+             script: [classpath: [], sandbox: false, script: '''
+                 if (EXECUTION_TYPE.equals("Flyway")) {
+                     return ["info", "validate", "migrate", "repair"]
+                 } else {
+                     return []
+                 }
+             ''']
+         ]
+        ]
+    }
+    stages {
+        stage('Execute') {
+            steps {
+                script {
+                    // Your execution logic here
+                }
             }
-        }
-    
-        activeChoiceReactiveParam('ENVIRONMENT') {
-            description('Select the environment')
-            groovyScript {
-                script('''
-                    if (EXECUTION_TYPE.equals("Flyway")) {
-                        return ["dev", "test", "prod"]
-                    } else {
-                        return ["prod", "non-prod"]
-                    }
-                ''')
-                fallbackScript('return ["ERROR"]')
-            }
-            referencedParameters('EXECUTION_TYPE')
-        }
-        
-        activeChoiceReactiveParam('OPERATION_TYPE') {
-            description('Select the operation type')
-            groovyScript {
-                script('''
-                    if (EXECUTION_TYPE.equals("Flyway")) {
-                        return ["info", "validate", "migrate", "repair"]
-                    } else {
-                        return []
-                    }
-                ''')
-                fallbackScript('return ["N/A"]')
-            }
-            referencedParameters('EXECUTION_TYPE')
         }
     }
+}
+
     
     stages {
         stage('Execute') {
